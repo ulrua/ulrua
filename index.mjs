@@ -1,21 +1,27 @@
-import { createBareServer } from '@tomphttp/bare-server-node';
+import { createBareServer } from "@tomphttp/bare-server-node";
 import express from "express";
 import { createServer } from "node:http";
+import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
 import { uvPath } from "@titaniumnetwork-dev/ultraviolet";
 import { join } from "node:path";
 import { hostname } from "node:os";
 import { fileURLToPath } from "url";
+import { BareMux } from "@mercuryworkshop/bare-mux";
 
 // Enable debugging based on environment variable
 const DEBUG = process.env.DEBUG === "true";
 
 const publicPath = fileURLToPath(new URL("./public/", import.meta.url));
 
+// Initialize Bare server and BareMux
 const bare = createBareServer("/bare/");
+const bareMux = new BareMux({ path: "/baremux/", bareServer: bare });
+
 const app = express();
 
 app.use(express.static(publicPath));
 app.use("/uv/", express.static(uvPath));
+app.use("/baremux/", express.static(baremuxPath));
 
 app.use((req, res) => {
   log("404 error for:", req.url);
@@ -29,6 +35,9 @@ server.on("request", (req, res) => {
   if (bare.shouldRoute(req)) {
     log("Routing request through Bare Server:", req.url);
     bare.routeRequest(req, res);
+  } else if (bareMux.shouldRoute(req)) {
+    log("Routing request through BareMux:", req.url);
+    bareMux.routeRequest(req, res);
   } else {
     log("Routing request through Express:", req.url);
     app(req, res);
@@ -39,6 +48,9 @@ server.on("upgrade", (req, socket, head) => {
   if (bare.shouldRoute(req)) {
     log("Routing upgrade request through Bare Server:", req.url);
     bare.routeUpgrade(req, socket, head);
+  } else if (bareMux.shouldRoute(req)) {
+    log("Routing upgrade request through BareMux:", req.url);
+    bareMux.routeUpgrade(req, socket, head);
   } else {
     log("Upgrade request not handled, closing socket:", req.url);
     socket.end();
