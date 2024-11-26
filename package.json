@@ -12,8 +12,9 @@
     },
     "author": "",
     "dependencies": {
-      "@titaniumnetwork-dev/ultraviolet": "^2.0.0",
-      "@tomphttp/bare-server-node": "^2.0.2",
+      "@mercuryworkshop/bare-mux": "^2.1.7",
+      "@titaniumnetwork-dev/ultraviolet": "v3.2.10",
+      "@tomphttp/bare-server-node": "^2.0.3",
       "express": "^4.19.2"
     },
     "devDependencies": {
